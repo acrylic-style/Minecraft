@@ -10,6 +10,9 @@ work/Minecraft/
 # decompiler (no longer used though)
 work/decompiler/
 
+# Access Transformers
+work/AccessTransformers
+
 # minecraft source tree
 /Minecraft/src/*
 /Minecraft/

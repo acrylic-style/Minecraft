@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 source ./scripts/functions.sh
-clientJarUrl="https://piston-data.mojang.com/v1/objects/82d1974e75fc984c5ed4b038e764e50958ac61a0/client.jar"
+clientJarUrl="https://piston-data.mojang.com/v1/objects/c6b92b2374a629f20802bb284f98a4ee790e950a/client.jar"
 clientJarPath="$basedir"/work/Minecraft/$version/client.jar
-clientMappingUrl="https://piston-data.mojang.com/v1/objects/5c292ff7d3161977041116698e295083fd5ec8f5/client.txt"
+clientMappingUrl="https://piston-data.mojang.com/v1/objects/65b1468c44fbf34382716416b5c1a16d2949217a/client.txt"
 clientMappingPath="$basedir"/work/Minecraft/$version/mapping.txt
 clientRemappedJarPath="$basedir"/work/Minecraft/$version/client-remapped.jar
-FF_URL="https://maven.minecraftforge.net/net/minecraftforge/forgeflower/1.5.498.29/forgeflower-1.5.498.29.jar"
-decompilerBin="$basedir"/work/ForgeFlower/forgeflower-1.5.498.29.jar
+FF_URL="https://maven.minecraftforge.net/net/minecraftforge/forgeflower/2.0.674.2/forgeflower-2.0.674.2.jar"
+decompilerBin="$basedir"/work/ForgeFlower/forgeflower-2.0.674.2.jar
+AT_URL="https://maven.minecraftforge.net/net/minecraftforge/accesstransformers/8.1.6/accesstransformers-8.1.6-fatjar.jar"
+AT_BIN="$basedir/work/AccessTransformers/accesstransformers-8.1.6-fatjar.jar"
 quickunzip="$basedir/work/quickunzip/quickunzip.jar"
 decompOutput="$basedir/work/Minecraft/$version/source"
 # Remove files that was used previously
@@ -26,6 +28,11 @@ curl $FF_URL --output "$decompilerBin" || (
   echo "Could not download ForgeFlower, please check for errors above, fix it, then run again."
   exit 1
 )
+echo "Downloading AccessTransformers..."
+curl $AT_URL --output "$AT_BIN" || (
+  echo "Could not download AccessTransformers, please check for errors above, fix it, then run again."
+  exit 1
+)
 echo "Downloading client jar..."
 curl $clientJarUrl --output "$clientJarPath" || (
   echo "Could not download client jar, please check for errors above, fix it, then run again."
@@ -38,9 +45,9 @@ curl $clientMappingUrl --output "$clientMappingPath" || (
 )
 echo "Applying mapping"
 "$basedir"/work/MC-Remapper/bin/MC-Remapper --fixlocalvar=rename --output-name="$clientRemappedJarPath" "$clientJarPath" "$clientMappingPath" || exit 1
-java -Xmx2G -jar "$basedir/work/ParameterRemapper/ParameterRemapper-1.0.4.jar" --input-file="$clientRemappedJarPath" --output-file="$clientRemappedJarPath.2" --mapping-file="$basedir/work/mappings/mappings/$MAPPINGS_VERSION.pr" || exit 1
+java -Xmx2G -jar "$basedir/work/ParameterRemapper/ParameterRemapper-1.0.5.jar" --input-file="$clientRemappedJarPath" --output-file="$clientRemappedJarPath.2" --mapping-file="$basedir/work/mappings/mappings/$MAPPINGS_VERSION.pr" || exit 1
 echo "Applying AccessTransformers"
-java -Xmx2G -jar "$basedir/work/AccessTransformers/accesstransformers-8.0.4-fatjar.jar" --inJar "$clientRemappedJarPath.2" --outJar "$clientRemappedJarPath" --atFile "$basedir/work/mappings/mappings/$MAPPINGS_VERSION.at" || exit 1
+java -Xmx2G -jar "$AT_BIN" --inJar "$clientRemappedJarPath.2" --outJar "$clientRemappedJarPath" --atFile "$basedir/work/mappings/mappings/$MAPPINGS_VERSION.at" || exit 1
 echo "Deleting intermediate jar"
 rm "$clientRemappedJarPath.2"
 echo "Unpacking jar..."
